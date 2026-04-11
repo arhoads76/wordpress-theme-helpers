@@ -18,7 +18,7 @@ if "!THEME_NAME!"=="" (
 :: (written to a temp .ps1 to avoid cmd misinterpreting ^ and | inside the regex)
 set "_PS_TMP=%TEMP%\slugify_%RANDOM%.ps1"
 echo $s = $env:THEME_NAME.ToLower() -replace '[^^a-z0-9]+', '_'; Write-Output $s.Trim('_') > "!_PS_TMP!"
-for /f "delims=" %%i in ('powershell -NoProfile -File "!_PS_TMP!"') do set THEME_SLUG=%%i-dev
+for /f "delims=" %%i in ('powershell -NoProfile -File "!_PS_TMP!"') do set THEME_SLUG=%%i
 del "!_PS_TMP!"
 
 set THEME_DIR=!THEME_NAME!-dev
@@ -100,7 +100,7 @@ copy "%~dp0create-new-tailwind-theme-build.tmpl" build.cmd > nul
     echo Version: 1.0.0
     echo License: MIT
     echo License URI: https://opensource.org/licenses/MIT
-    echo Text Domain: !THEME_SLUG!
+    echo Text Domain: !THEME_SLUG!-dev
     echo */
 ) > style.css
 
@@ -110,7 +110,7 @@ copy "%~dp0create-new-tailwind-theme-build.tmpl" build.cmd > nul
 (
     echo ^<?php
     echo.
-    echo function !THEME_SLUG!_enqueue_assets^(^) {
+    echo function !THEME_SLUG!_assets^(^) {
     echo     wp_enqueue_style^(
     echo         '!THEME_SLUG!-style',
     echo         get_template_directory_uri^(^) . '/assets/css/style.css',
@@ -118,7 +118,7 @@ copy "%~dp0create-new-tailwind-theme-build.tmpl" build.cmd > nul
     echo         wp_get_theme^(^)-^>get^( 'Version' ^)
     echo     ^)^;
     echo }
-    echo add_action^( 'wp_enqueue_scripts', '!THEME_SLUG!_enqueue_assets' ^)^;
+    echo add_action^( 'wp_enqueue_scripts', '!THEME_SLUG!_assets' ^)^;
 ) > functions.php
 
 :: -------------------------------------------------------
