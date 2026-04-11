@@ -6,7 +6,7 @@ echo  WordPress Tailwind Theme Creator
 echo =======================================
 echo.
 
-set /p THEME_NAME=Enter theme name:
+set /p THEME_NAME=Enter theme name: 
 
 if "!THEME_NAME!"=="" (
     echo Theme name cannot be empty.
@@ -15,7 +15,11 @@ if "!THEME_NAME!"=="" (
 )
 
 :: Derive a PHP/CSS-safe slug: lowercase, non-alphanumeric runs become underscores
-for /f "delims=" %%i in ('powershell -Command "'!THEME_NAME!'.ToLower() -replace '[^a-z0-9]+', '_' -replace '^_|_$', ''"') do set THEME_SLUG=%%i
+:: (written to a temp .ps1 to avoid cmd misinterpreting ^ and | inside the regex)
+set "_PS_TMP=%TEMP%\slugify_%RANDOM%.ps1"
+echo $s = $env:THEME_NAME.ToLower() -replace '[^^a-z0-9]+', '_'; Write-Output $s.Trim('_') > "!_PS_TMP!"
+for /f "delims=" %%i in ('powershell -NoProfile -File "!_PS_TMP!"') do set THEME_SLUG=%%i-dev
+del "!_PS_TMP!"
 
 set THEME_DIR=!THEME_NAME!-dev
 
@@ -81,23 +85,21 @@ mkdir "assets\js"
     echo npx tailwindcss -i .\assets\css\tailwind.css -o .\assets\css\style.css --watch
 ) > watch.cmd
 
-(
-    echo @echo Not yet implemented
-) > build.cmd
+copy "%~dp0create-new-tailwind-theme-build.tmpl" build.cmd > nul
 
 :: -------------------------------------------------------
 :: style.css — WordPress theme header
 :: -------------------------------------------------------
 (
     echo /*
-    echo Theme Name: !THEME_NAME!
+    echo Theme Name: !THEME_NAME!-dev
     echo Theme URI:
     echo Author:
     echo Author URI:
     echo Description:
     echo Version: 1.0.0
-    echo License: GNU General Public License v2 or later
-    echo License URI: https://www.gnu.org/licenses/gpl-2.0.html
+    echo License: MIT
+    echo License URI: https://opensource.org/licenses/MIT
     echo Text Domain: !THEME_SLUG!
     echo */
 ) > style.css
@@ -118,6 +120,26 @@ mkdir "assets\js"
     echo }
     echo add_action^( 'wp_enqueue_scripts', '!THEME_SLUG!_enqueue_assets' ^)^;
 ) > functions.php
+
+:: -------------------------------------------------------
+:: header.php
+:: -------------------------------------------------------
+(
+    echo ^<!DOCTYPE html^>
+    echo ^<html^>
+    echo ^<head^>
+    echo     ^<?php wp_head^(^) ?^>
+    echo ^</head^>
+    echo ^<body^>
+) > header.php
+
+:: -------------------------------------------------------
+:: footer.php
+:: -------------------------------------------------------
+(
+    echo ^</body^>
+    echo ^</html^>
+) > footer.php
 
 :: -------------------------------------------------------
 :: index.php — required minimum template (WordPress won't
