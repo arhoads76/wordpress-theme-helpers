@@ -88,6 +88,14 @@ mkdir "assets\js"
 copy "%~dp0create-new-tailwind-theme-build.tmpl" build.cmd > nul
 
 :: -------------------------------------------------------
+:: .gitignore
+:: -------------------------------------------------------
+(
+    echo node_modules/
+    echo *.zip
+) > .gitignore
+
+:: -------------------------------------------------------
 :: style.css — WordPress theme header
 :: -------------------------------------------------------
 (
